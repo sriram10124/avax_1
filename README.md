@@ -4,11 +4,22 @@ This Solidity program is a "avax error handler" program that demonstrates the er
 
 ## Description
 
-- checkEligibility: This function takes an age as input and checks if the person is eligible to vote. It requires that the age is 18 or older. If the age is less than 18, it raises a "Not Eligible" error message; otherwise, it returns "Eligible to vote".
+The avax_error contract consists of the following components:
 
-- checkIfVoted: This function checks whether a person has already voted. It takes a boolean parameter voted indicating whether the person has voted or not. If voted is true (indicating the person has already voted), the function reverts with the error message "You cannot vote twice". If voted is false, indicating the person hasn't voted, it returns true.
+- State Variables:
 
-- checkVoterId: This function checks if the voter has a valid voter ID. It takes a boolean parameter voterid. It uses an assert statement to ensure that voterid is true. If voterid is true, indicating a valid voter ID, it returns "You can proceed to the designated booth".
+uint public total_supply;: This variable represents the total supply of tokens and is publicly accessible.
+address owner;: This variable holds the address of the contract owner.
+- Constructor:
+
+The constructor initializes the total_supply variable with the value passed as _totalsupply. It also sets the owner variable to a specific Ethereum address (0x5B38Da6a701c568545dCfcB03FcB875f56beddC4).
+- Modifier:
+
+onlyOwner: This modifier restricts access to certain functions to only the contract owner. It verifies whether the caller of the function is the owner before allowing the function to proceed.
+- Functions:
+
+increase_supply(uint byValue) public onlyOwner: This function allows the owner to increase the total token supply by the specified amount (byValue). It ensures that the total supply is greater than zero using assert. If the new total supply exceeds 10000, the function reverts the transaction with an error message.
+giveAccess(address _address) public: This function allows the contract owner to grant access to specific addresses within the community. It checks whether the provided address is one of three predetermined addresses. If it is, the function sets that address as the new owner.
 ## Getting Started
 
 ### Executing program
@@ -19,23 +30,39 @@ Once you are on the Remix website, create a new file by clicking on the "+" icon
 
 ```javascript
 //SPDX-License-Identifier:MIT
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.0;
+
 contract avax_error{
-    function checkEligibility(uint _age)public pure returns (string memory){
-        require(_age>=18,"Not Eligible");
-        return "Eligible to vote";
-    } 
-    function checkIfVoted(bool voted)public pure returns(bool){
-        if(voted==true){
-            revert("You cannot vote twice");
-        }else {
-            return true;
+    uint public total_supply;
+    address owner;
+
+    constructor(uint _totalsupply){
+        total_supply=_totalsupply;
+       owner=0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+    }
+    modifier onlyOwner{
+        require(msg.sender==owner,"Only Owner can call the function");
+        _;
+    }
+    function increase_supply(uint byValue)public onlyOwner{
+        assert(total_supply>0);
+        total_supply+=byValue;
+        if(total_supply>10000){
+            revert("Transaction Failed:You cannot exceed the maximum total supply-10000");
         }
     }
-    function checkVoterId(bool voterid)public pure returns(string memory){
-        assert(voterid==true);
-        return "You can proceed to the designated booth";
-        }
+
+    function giveAccess(address _address) public{
+    require(
+        _address == 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2 ||
+        _address == 0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db ||
+        _address == 0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB,
+        "Cannot give access to addresses outside the community"
+    );
+    owner=_address;
+}
+
+
 }
 
 ```
